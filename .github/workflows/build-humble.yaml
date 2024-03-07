@@ -4,12 +4,15 @@ on:
   workflow_dispatch:
     branches:
       - humble
+      - humble-devel
   pull_request:
     branches:
       - humble
+      - humble-devel
   push:
     branches:
       - humble
+      - humble-devel
 
 jobs:
   industrial_ci:
