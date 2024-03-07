@@ -8,7 +8,7 @@
     <xacro:arg name="use_hardware_biasing" default="false" />
 
     <link name="world" />
-    <xacro:include filename="$(find net_ft_description)/urdf/net_ft_sensor_macro.urdf.xacro" />
+    <xacro:include filename="$(find net_ft_description)/urdf/net_ft_sensor.xacro" />
     <xacro:net_ft_sensor
       parent="world"
       prefix=""
