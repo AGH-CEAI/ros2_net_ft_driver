@@ -3,6 +3,7 @@
   <xacro:macro name="net_ft_sensor" params="
     prefix
     parent
+    use_physical_hardware
     *origin
     ip_address
     rdt_sampling_rate
@@ -72,13 +73,17 @@
     </joint>
     <link name="${prefix}tool_mount_link"/>
 
-    <xacro:include filename="$(find net_ft_description)/urdf/net_ft_sensor.ros2_control.xacro" />
-    <xacro:net_ft_sensor_ros2_control
-      name="NetFtHardwareInterface"
-      sensor_type="${sensor_type}"
-      ip_address="${ip_address}"
-      rdt_sampling_rate="${rdt_sampling_rate}"
-      internal_filter_rate="${internal_filter_rate}"
-      use_hardware_biasing="${use_hardware_biasing}"/>
+    
+    <xacro:if value="$(arg use_physical_hardware)">
+      <xacro:include filename="$(find net_ft_description)/urdf/net_ft_sensor.ros2_control.xacro" />
+      <xacro:net_ft_sensor_ros2_control
+        name="NetFtHardwareInterface"
+        sensor_type="${sensor_type}"
+        ip_address="${ip_address}"
+        rdt_sampling_rate="${rdt_sampling_rate}"
+        internal_filter_rate="${internal_filter_rate}"
+        use_hardware_biasing="${use_hardware_biasing}"/>
+    </xacro:if>
+
   </xacro:macro>
 </robot>

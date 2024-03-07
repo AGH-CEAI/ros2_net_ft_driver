@@ -12,6 +12,7 @@
     <xacro:net_ft_sensor
       parent="world"
       prefix=""
+      use_physical_hardware="false"
       ip_address="$(arg ip_address)"
       rdt_sampling_rate="$(arg rdt_sampling_rate)"
       sensor_type="$(arg sensor_type)"
