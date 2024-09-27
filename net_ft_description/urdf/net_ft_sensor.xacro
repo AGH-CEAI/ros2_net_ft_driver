@@ -51,13 +51,13 @@
 
     <link name="${prefix}fts_link">
       <visual>
-        <origin xyz="0 0 0" rpy="0 0 0" />
+        <origin xyz="0 0 ${sensor_height}" rpy="${pi} 0 0" />
         <geometry>
           <mesh filename="package://net_ft_description/meshes/visual/${mesh_file}.dae"/>
         </geometry>
       </visual>
       <collision>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <origin xyz="0 0 ${sensor_height}" rpy="${pi} 0 0"/>
         <geometry>
           <mesh filename="package://net_ft_description/meshes/collision/${mesh_file}.stl"/>
         </geometry>
