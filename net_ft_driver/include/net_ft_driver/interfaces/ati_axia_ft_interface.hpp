@@ -52,7 +52,7 @@ class AtiAxiaFTFactory : public NetFTFactory
 public:
   AtiAxiaFTFactory()
   {
-    NetFTInterface::register_type("ati_axia", this);
+    NetFTInterface::register_type("ati_axia80", this);
   }
   std::unique_ptr<NetFTInterface> create(const std::string& ip_address)
   {

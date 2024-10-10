@@ -89,6 +89,7 @@ def launch_setup(context, *args, **kwargs):
         executable="ros2_control_node",
         output="both",
         parameters=[ft_controller],
+        remappings=[("/controller_manager/robot_description", "robot_description")],
     )
 
     robot_state_publisher_node = launch_ros.actions.Node(
