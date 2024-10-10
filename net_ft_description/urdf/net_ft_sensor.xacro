@@ -8,6 +8,7 @@
     ip_address
     rdt_sampling_rate
     sensor_type
+    bolts_mass
     internal_filter_rate
     use_hardware_biasing">
 
@@ -62,7 +63,7 @@
           <mesh filename="package://net_ft_description/meshes/collision/${mesh_file}.stl"/>
         </geometry>
       </collision>
-      <xacro:cylinder_inertial radius="${sensor_radius}" length="${sensor_height}" mass="${sensor_mass}">
+      <xacro:cylinder_inertial radius="${sensor_radius}" length="${sensor_height}" mass="${sensor_mass + bolts_mass}">
         <xacro:insert_block name="origin" />
       </xacro:cylinder_inertial>
     </link>

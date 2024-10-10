@@ -4,6 +4,7 @@
     <xacro:arg name="ip_address" default="192.168.1.1" />
     <xacro:arg name="rdt_sampling_rate" default="500" />
     <xacro:arg name="sensor_type" default="ati_axia80" />
+    <xacro:arg name="bolts_mass" default="0.0" />
     <xacro:arg name="internal_filter_rate" default="0" />
     <xacro:arg name="use_hardware_biasing" default="false" />
 
