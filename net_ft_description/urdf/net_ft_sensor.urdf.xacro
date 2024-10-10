@@ -5,6 +5,7 @@
     <xacro:arg name="rdt_sampling_rate" default="500" />
     <xacro:arg name="sensor_type" default="ati_axia80" />
     <xacro:arg name="internal_filter_rate" default="0" />
+    <xacro:arg name="use_physical_hardware" default="false" />
     <xacro:arg name="use_hardware_biasing" default="false" />
 
     <link name="world" />
@@ -12,7 +13,7 @@
     <xacro:net_ft_sensor
       parent="world"
       prefix=""
-      use_physical_hardware="false"
+      use_physical_hardware="$(arg use_physical_hardware)"
       ip_address="$(arg ip_address)"
       rdt_sampling_rate="$(arg rdt_sampling_rate)"
       sensor_type="$(arg sensor_type)"

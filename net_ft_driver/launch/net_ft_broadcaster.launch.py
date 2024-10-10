@@ -43,6 +43,7 @@ def launch_setup(context, *args, **kwargs):
     rdt_sampling_rate = LaunchConfiguration("rdt_sampling_rate")
     sensor_type = LaunchConfiguration("sensor_type")
     internal_filter_rate = LaunchConfiguration("internal_filter_rate")
+    use_physical_hardware = LaunchConfiguration("use_physical_hardware")
     use_hardware_biasing = LaunchConfiguration("use_hardware_biasing")
 
     robot_description_content = Command(
@@ -68,6 +69,9 @@ def launch_setup(context, *args, **kwargs):
             " ",
             "internal_filter_rate:=",
             internal_filter_rate,
+            " ",
+            "use_physical_hardware:=",
+            use_physical_hardware,
             " ",
             "use_hardware_biasing:=",
             use_hardware_biasing,
