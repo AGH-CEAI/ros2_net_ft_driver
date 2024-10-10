@@ -20,13 +20,17 @@ Software was tested with `ATI AXIA80` and `OnRobot HEX-E V2` and `ATI Net F/T se
 
 Installing dependencies:
 
-```Bash
+```bash
 sudo apt update
 sudo apt dist-upgrade
 rosdep update
 git -C src clone --branch galactic https://github.com/gbartyzel/ros2_net_ft_driver.git
 sudo apt install -y libasio-dev libcurlpp-dev
 rosdep install --ignore-src --from-paths src -y -r --rosdistro $ROS_DISTRO
+```
+Remeber to install the packages of [ros2_control](https://control.ros.org/humble/doc/getting_started/getting_started.html): 
+```bash
+sudo apt install ros-$ROS_DISTRO-ros2-control ros-$ROS_DISTRO-ros2-controllers
 ```
 
 Build the package:
