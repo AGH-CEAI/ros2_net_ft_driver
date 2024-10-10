@@ -142,7 +142,7 @@ def generate_launch_description():
         launch.actions.DeclareLaunchArgument(
             name="ip_address",
             default_value="192.168.1.1",
-            description="F/T Sensor IP adress",
+            description="F/T Sensor IP adress.",
         )
     )
     declared_arguments.append(
@@ -164,9 +164,16 @@ def generate_launch_description():
     )
     declared_arguments.append(
         launch.actions.DeclareLaunchArgument(
+            name="use_physical_hardware",
+            default_value="false",
+            description="Whether to use the physical device.",
+        )
+    )
+    declared_arguments.append(
+        launch.actions.DeclareLaunchArgument(
             name="use_hardware_biasing",
             default_value="false",
-            description="Whether to use built-in sensor zeroing",
+            description="Whether to use built-in sensor zeroing.",
         )
     )
 

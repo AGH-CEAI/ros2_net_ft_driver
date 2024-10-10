@@ -45,7 +45,7 @@ source install/local_setup.sh
 Launch the controller:
 
 ```Bash
-ros2 launch net_ft_driver net_ft_broadcaster.launch.py ip_address:=192.168.1.1 sensor_type:=ati_axia rdt_sampling_rate:=500
+ros2 launch net_ft_driver net_ft_broadcaster.launch.py ip_address:=192.168.1.1 sensor_type:=ati_axia80 rdt_sampling_rate:=500 use_physical_hardware:=false
 ```
 
 where:
@@ -54,4 +54,5 @@ where:
 - `sensor_type`: the sensor type, select one of `ati`, `ati_axia80`, `onrobot`.
 - `rdt_sampling_rate`: the sampling rate of the RDT communication, please refer to
   the sensor manuals for the frequency range.
+- `use_physical_hardware`: whether to use the physical device.
 - `use_hardware_biasing`: whether to use built-in sensor biasing.
