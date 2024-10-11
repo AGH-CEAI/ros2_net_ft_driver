@@ -20,7 +20,7 @@ Software was tested with `ATI AXIA80` and `OnRobot HEX-E V2` and `ATI Net F/T se
 
 Installing dependencies:
 
-```Bash
+```bash
 sudo apt update
 sudo apt dist-upgrade
 rosdep update
@@ -29,9 +29,15 @@ sudo apt install -y libasio-dev libcurlpp-dev
 rosdep install --ignore-src --from-paths src -y -r --rosdistro $ROS_DISTRO
 ```
 
+Remeber to install the packages of [ros2_control](https://control.ros.org/humble/doc/getting_started/getting_started.html):
+
+```bash
+sudo apt install ros-$ROS_DISTRO-ros2-control ros-$ROS_DISTRO-ros2-controllers
+```
+
 Build the package:
 
-```Bash
+```bash
 colcon build --symlink-install
 source install/local_setup.sh
 ```
@@ -40,14 +46,15 @@ source install/local_setup.sh
 
 Launch the controller:
 
-```Bash
-ros2 launch net_ft_driver net_ft_broadcaster.launch.py ip_address:=192.168.1.1 sensor_type:=ati_axia rdt_sampling_rate:=500
+```bash
+ros2 launch net_ft_driver net_ft_broadcaster.launch.py ip_address:=192.168.1.1 sensor_type:=ati_axia80 rdt_sampling_rate:=500 use_physical_hardware:=false
 ```
 
 where:
 
 - `ip_address`: the IP address of the F/T sensor.
-- `sensor_type`: the sensor type, select one of `ati`, `ati_axia`, `onrobot`.
+- `sensor_type`: the sensor type, select one of `ati`, `ati_axia80`, `onrobot`.
 - `rdt_sampling_rate`: the sampling rate of the RDT communication, please refer to
   the sensor manuals for the frequency range.
+- `use_physical_hardware`: whether to use the physical device.
 - `use_hardware_biasing`: whether to use built-in sensor biasing.

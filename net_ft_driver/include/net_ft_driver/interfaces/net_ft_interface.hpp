@@ -31,8 +31,9 @@
 
 #include <array>
 #include <cstdlib>
-#include <memory>
 #include <map>
+#include <memory>
+#include <stdexcept>
 #include <string>
 #include <utility>
 
@@ -72,7 +73,14 @@ class NetFTInterface
 public:
   static std::unique_ptr<NetFTInterface> create(const std::string& sensor_type, const std::string& ip_address)
   {
+    assert_sensor_type(sensor_type);
     return get_factory_instance()[sensor_type]->create(ip_address);
+  }
+
+  static void assert_sensor_type(const std::string& sensor_type)
+  {
+    if (get_factory_instance().find(sensor_type) == get_factory_instance().end())
+      throw std::runtime_error("Sensor type not supported: " + sensor_type);
   }
 
   static void register_type(const std::string& sensor_type, NetFTFactory* factory)

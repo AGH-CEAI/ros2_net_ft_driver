@@ -55,3 +55,9 @@ repos:
         language: system
         files: \.(c|cc|cxx|cpp|frag|glsl|h|hpp|hxx|ih|ispc|ipp|java|js|m|proto|vert)$
         args: ["-fallback-style=none", "-i"]
+
+  - repo: https://github.com/tier4/pre-commit-hooks-ros
+    rev: v0.10.0
+    hooks:
+      - id: prettier-package-xml
+      - id: sort-package-xml

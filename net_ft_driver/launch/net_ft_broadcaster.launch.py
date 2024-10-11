@@ -43,6 +43,7 @@ def launch_setup(context, *args, **kwargs):
     rdt_sampling_rate = LaunchConfiguration("rdt_sampling_rate")
     sensor_type = LaunchConfiguration("sensor_type")
     internal_filter_rate = LaunchConfiguration("internal_filter_rate")
+    use_physical_hardware = LaunchConfiguration("use_physical_hardware")
     use_hardware_biasing = LaunchConfiguration("use_hardware_biasing")
 
     robot_description_content = Command(
@@ -69,6 +70,9 @@ def launch_setup(context, *args, **kwargs):
             "internal_filter_rate:=",
             internal_filter_rate,
             " ",
+            "use_physical_hardware:=",
+            use_physical_hardware,
+            " ",
             "use_hardware_biasing:=",
             use_hardware_biasing,
             " ",
@@ -83,12 +87,15 @@ def launch_setup(context, *args, **kwargs):
     control_node = launch_ros.actions.Node(
         package="controller_manager",
         executable="ros2_control_node",
-        parameters=[robot_description_param, ft_controller],
+        output="both",
+        parameters=[ft_controller],
+        remappings=[("/controller_manager/robot_description", "robot_description")],
     )
 
     robot_state_publisher_node = launch_ros.actions.Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
+        output="both",
         parameters=[robot_description_param],
     )
 
@@ -128,7 +135,7 @@ def generate_launch_description():
     declared_arguments.append(
         launch.actions.DeclareLaunchArgument(
             name="sensor_type",
-            default_value="ati_axia",
+            default_value="ati_axia80",
             description="Type of the F/T sensor.",
         )
     )
@@ -136,7 +143,7 @@ def generate_launch_description():
         launch.actions.DeclareLaunchArgument(
             name="ip_address",
             default_value="192.168.1.1",
-            description="F/T Sensor IP adress",
+            description="F/T Sensor IP adress.",
         )
     )
     declared_arguments.append(
@@ -158,9 +165,16 @@ def generate_launch_description():
     )
     declared_arguments.append(
         launch.actions.DeclareLaunchArgument(
+            name="use_physical_hardware",
+            default_value="false",
+            description="Whether to use the physical device.",
+        )
+    )
+    declared_arguments.append(
+        launch.actions.DeclareLaunchArgument(
             name="use_hardware_biasing",
             default_value="false",
-            description="Whether to use built-in sensor zeroing",
+            description="Whether to use built-in sensor zeroing.",
         )
     )
 
