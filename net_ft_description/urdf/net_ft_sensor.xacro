@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
+
   <xacro:macro name="net_ft_sensor" params="
     prefix
     parent
@@ -8,6 +9,7 @@
     ip_address
     rdt_sampling_rate
     sensor_type
+    bolts_mass
     internal_filter_rate
     use_hardware_biasing">
 
@@ -15,37 +17,40 @@
       <inertial>
         <mass value="${mass}" />
         <xacro:insert_block name="origin" />
-        <inertia ixx="${0.0833333 * mass * (3 * radius * radius + length * length)}" ixy="0.0" ixz="0.0"
-          iyy="${0.0833333 * mass * (3 * radius * radius + length * length)}" iyz="0.0"
+        <inertia ixx="${0.0833333 * mass * (3 * radius * radius + length * length)}"
+          ixy="0.0"
+          ixz="0.0"
+          iyy="${0.0833333 * mass * (3 * radius * radius + length * length)}"
+          iyz="0.0"
           izz="${0.5 * mass * radius * radius}" />
       </inertial>
     </xacro:macro>
 
     <xacro:if value="${sensor_type == 'ati_axia80'}">
-      <xacro:property name="mesh_file" value="ati_axia80_ft_sensor"/>
-      <xacro:property name="sensor_mass" value="0.28"/>
-      <xacro:property name="sensor_radius" value="0.082"/>
-      <xacro:property name="sensor_height" value="0.0254"/>
+      <xacro:property name="mesh_file" value="ati_axia80_ft_sensor" />
+      <xacro:property name="sensor_mass" value="0.28" />
+      <xacro:property name="sensor_radius" value="0.082" />
+      <xacro:property name="sensor_height" value="0.0254" />
     </xacro:if>
 
     <xacro:if value="${sensor_type == 'onrobot'}">
-      <xacro:property name="mesh_file" value="onrobot_hexe_v2_ft_sensor"/>
-      <xacro:property name="sensor_mass" value="0.245"/>
-      <xacro:property name="sensor_radius" value="0.07"/>
-      <xacro:property name="sensor_height" value="0.0375"/>
+      <xacro:property name="mesh_file" value="onrobot_hexe_v2_ft_sensor" />
+      <xacro:property name="sensor_mass" value="0.245" />
+      <xacro:property name="sensor_radius" value="0.07" />
+      <xacro:property name="sensor_height" value="0.0375" />
     </xacro:if>
 
     <xacro:if value="${sensor_type == 'ati'}">
-      <xacro:property name="mesh_file" value="ati_gamma_ip65_ft_sensor"/>
-      <xacro:property name="sensor_mass" value="0.5"/>
-      <xacro:property name="sensor_radius" value="0.07"/>
-      <xacro:property name="sensor_height" value="0.0375"/>
+      <xacro:property name="mesh_file" value="ati_gamma_ip65_ft_sensor" />
+      <xacro:property name="sensor_mass" value="0.5" />
+      <xacro:property name="sensor_radius" value="0.07" />
+      <xacro:property name="sensor_height" value="0.0375" />
     </xacro:if>
 
     <joint name="${prefix}fts_joint" type="fixed">
       <!-- The parent link must be read from the robot model it is attached to. -->
-      <parent link="${parent}"/>
-      <child link="${prefix}fts_link"/>
+      <parent link="${parent}" />
+      <child link="${prefix}fts_link" />
       <xacro:insert_block name="origin" />
     </joint>
 
@@ -53,26 +58,25 @@
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <mesh filename="package://net_ft_description/meshes/visual/${mesh_file}.dae"/>
+          <mesh filename="package://net_ft_description/meshes/visual/${mesh_file}.dae" />
         </geometry>
       </visual>
       <collision>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <mesh filename="package://net_ft_description/meshes/collision/${mesh_file}.stl"/>
+          <mesh filename="package://net_ft_description/meshes/collision/${mesh_file}.stl" />
         </geometry>
       </collision>
-      <xacro:cylinder_inertial radius="${sensor_radius}" length="${sensor_height}" mass="${sensor_mass}">
+      <xacro:cylinder_inertial radius="${sensor_radius}" length="${sensor_height}" mass="${sensor_mass + bolts_mass}">
         <xacro:insert_block name="origin" />
       </xacro:cylinder_inertial>
     </link>
     <joint name="${prefix}tool_side_joint" type="fixed">
-      <parent link="${prefix}fts_link"/>
-      <child link="${prefix}tool_mount_link"/>
-      <origin xyz="0 0 ${sensor_height}" rpy="0 0 0"/>
+      <parent link="${prefix}fts_link" />
+      <child link="${prefix}tool_mount_link" />
+      <origin xyz="0 0 ${sensor_height}" rpy="0 0 0" />
     </joint>
-    <link name="${prefix}tool_mount_link"/>
-
+    <link name="${prefix}tool_mount_link" />
 
     <xacro:if value="$(arg use_physical_hardware)">
       <xacro:include filename="$(find net_ft_description)/urdf/net_ft_sensor.ros2_control.xacro" />
@@ -82,8 +86,9 @@
         ip_address="${ip_address}"
         rdt_sampling_rate="${rdt_sampling_rate}"
         internal_filter_rate="${internal_filter_rate}"
-        use_hardware_biasing="${use_hardware_biasing}"/>
+        use_hardware_biasing="${use_hardware_biasing}" />
     </xacro:if>
 
   </xacro:macro>
+
 </robot>
