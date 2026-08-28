@@ -18,7 +18,7 @@
               <state_interface name="torque.x"/>
               <state_interface name="torque.y"/>
               <state_interface name="torque.z"/>
-              <param name="frame_id">fts_link</param>
+              <param name="frame_id">tool_mount_link</param>
           </sensor>
 
           <gpio name="diagnostic">
