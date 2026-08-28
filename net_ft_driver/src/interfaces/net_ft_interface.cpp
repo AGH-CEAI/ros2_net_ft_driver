@@ -66,8 +66,7 @@ NetFTInterface::NetFTInterface(const std::string& ip_address, int max_sampling_f
   , ft_values_({ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 })
 {
   asio::ip::udp::resolver resolver(io_service_);
-  asio::ip::udp::endpoint endpoint =
-      *resolver.resolve(asio::ip::udp::v4(), ip_address, std::to_string(kPort)).begin();
+  asio::ip::udp::endpoint endpoint = *resolver.resolve(asio::ip::udp::v4(), ip_address, std::to_string(kPort)).begin();
   socket_.open(asio::ip::udp::v4());
   socket_.connect(endpoint);
 
