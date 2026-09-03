@@ -26,9 +26,12 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
+#include <sstream>
 #include <algorithm>
 #include <string>
 #include <vector>
+
+#include "curlpp/Infos.hpp"
 
 #include "net_ft_driver/interfaces/ati_ft_interface.hpp"
 
@@ -46,9 +49,19 @@ bool AtiFTInterface::set_cgi_variable(const std::string& cgi_name, const std::st
   try {
     curlpp::Cleanup cleanup;
     curlpp::Easy request;
-    std::string xml_url{ "http://" + ip_address_ + "/" + cgi_name + "?" + var_name + "&" + value };
+    std::ostringstream response;
+
+    std::string xml_url{ "http://" + ip_address_ + "/" + cgi_name + "?" + var_name + "=" + value };
     request.setOpt(new curlpp::options::Url(xml_url));
+    request.setOpt(new curlpp::options::WriteStream(&response));
+    request.setOpt(new curlpp::options::Timeout(2));
     request.perform();
+
+    const long code = curlpp::infos::ResponseCode::get(request);
+    if (code < 200 || code >= 400) {
+      std::cerr << "CGI write " << var_name << "=" << value << " returned HTTP " << code << "\n";
+      return false;
+    }
     return true;
   } catch (curlpp::RuntimeError& e) {
     std::cerr << e.what() << std::endl;

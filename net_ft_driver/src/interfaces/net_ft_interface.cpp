@@ -38,6 +38,11 @@
 #include <sstream>
 #include <string>
 
+#include <sys/socket.h>
+#include <sys/time.h>
+
+constexpr long kReceiveTimeoutUs = 100000;  // 100 ms
+
 constexpr int kPort = 49152;
 
 constexpr uint16_t kHeader = 0x1234;
@@ -69,6 +74,13 @@ NetFTInterface::NetFTInterface(const std::string& ip_address, int max_sampling_f
   asio::ip::udp::endpoint endpoint = *resolver.resolve(asio::ip::udp::v4(), ip_address, std::to_string(kPort)).begin();
   socket_.open(asio::ip::udp::v4());
   socket_.connect(endpoint);
+  
+  struct timeval tv;
+  tv.tv_sec = 0;
+  tv.tv_usec = kReceiveTimeoutUs;
+  if (setsockopt(socket_.native_handle(), SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) != 0) {
+    std::cerr << "Failed to set the receive timeout on the RDT socket\n";
+  }
 
   auto cal_config = get_config("netftcalapi.xml");
   force_scale_ = 1.0 / std::stod(parse_config(cal_config, "netftCalibration", "calcpf"));
@@ -94,10 +106,19 @@ bool NetFTInterface::stop_streaming()
 std::unique_ptr<SensorData> NetFTInterface::receive_data()
 {
   uint8_t buffer[kRecordSize + 1];
-  size_t len = socket_.receive(asio::buffer(buffer, kRecordSize + 1));
+  asio::error_code ec;
+  size_t len = socket_.receive(asio::buffer(buffer, kRecordSize + 1), 0, ec);
+
+  if (ec) {
+    if (ec != asio::error::would_block && ec != asio::error::try_again) {
+      std::cerr << "RDT receive error: " << ec.message() << "\n";
+    }
+    return nullptr;
+  }
   if (len != kRecordSize) {
     return nullptr;
   }
+
   unpack(buffer);
 
   auto seq_diff = rdt_sequence_ - last_rdt_sequence_;

@@ -45,6 +45,16 @@ NetFtHardwareInterface::NetFtHardwareInterface()
 {
 }
 
+NetFtHardwareInterface::~NetFtHardwareInterface()
+{
+  if (executor_) {
+    executor_->cancel();
+  }
+  if (executor_thread_.joinable()) {
+    executor_thread_.join();
+  }
+}
+
 hardware_interface::CallbackReturn NetFtHardwareInterface::on_init(const hardware_interface::HardwareInfo& info)
 {
   if (hardware_interface::SensorInterface::on_init(info) != CallbackReturn::SUCCESS) {
@@ -63,6 +73,22 @@ hardware_interface::CallbackReturn NetFtHardwareInterface::on_init(const hardwar
   int internal_filter_rate = std::stoi(info_.hardware_parameters["internal_filter_rate"]);
 
   driver_ = NetFTInterface::create(sensor_type_, ip_address_);
+
+  srv_node_ = std::make_shared<rclcpp::Node>("net_ft_bias");
+  set_bias_srv_ = srv_node_->create_service<std_srvs::srv::Trigger>(
+      "~/set_bias", [this](const std_srvs::srv::Trigger::Request::SharedPtr,
+                           std_srvs::srv::Trigger::Response::SharedPtr res) {
+        request_bias(BiasCommand::kSet, res);
+      });
+  clear_bias_srv_ = srv_node_->create_service<std_srvs::srv::Trigger>(
+      "~/clear_bias", [this](const std_srvs::srv::Trigger::Request::SharedPtr,
+                             std_srvs::srv::Trigger::Response::SharedPtr res) {
+        request_bias(BiasCommand::kClear, res);
+      });
+
+  executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+  executor_->add_node(srv_node_);
+  executor_thread_ = std::thread([this]() { executor_->spin(); });
 
   if (!driver_->set_sampling_rate(rdt_rate)) {
     RCLCPP_FATAL(kLogger, "Couldn't set RDT sampling rate of the F/T Sensor!");
@@ -132,16 +158,98 @@ NetFtHardwareInterface::on_deactivate(const rclcpp_lifecycle::State& /*previous_
 hardware_interface::return_type NetFtHardwareInterface::read(const rclcpp::Time& /*time*/,
                                                              const rclcpp::Duration& /*period*/)
 {
-  auto data = driver_->receive_data();
-  if (data) {
-    ft_sensor_measurements_ = data->ft_values;
-    lost_packets_ = static_cast<double>(data->lost_packets);
-    packet_count_ = static_cast<double>(data->packet_count);
-    out_of_order_count_ = static_cast<double>(data->out_of_order_count);
-    status_ = static_cast<double>(data->status);
+  BiasCommand cmd = BiasCommand::kNone;
+  std::shared_ptr<std::promise<bool>> result;
+  {
+    std::lock_guard<std::mutex> lock(bias_mtx_);
+    cmd = pending_bias_;
+    result = bias_result_;
+    pending_bias_ = BiasCommand::kNone;
+    bias_result_.reset();
   }
+  if (cmd != BiasCommand::kNone) {
+    const auto& m = ft_sensor_measurements_;
+    bool ok = (cmd == BiasCommand::kSet) ? driver_->set_bias() : driver_->clear_bias();
+    if (ok) {
+      ok = driver_->start_streaming();
+    }
+
+    if (cmd == BiasCommand::kSet) {
+      if (ok) {
+        RCLCPP_INFO(logger_,
+                    "Bias applied. Wrench at bias time: F=[%.3f %.3f %.3f] N, T=[%.4f %.4f %.4f] Nm",
+                    m[0], m[1], m[2], m[3], m[4], m[5]);
+        log_after_bias_ = 20;
+      } else {
+        RCLCPP_ERROR(logger_, "Failed to apply bias");
+      }
+    } else {
+      if (ok) {
+        RCLCPP_INFO(logger_, "Bias cleared (software bias values zeroed)");
+        log_after_bias_ = 20;
+      } else {
+        RCLCPP_ERROR(logger_, "Failed to clear bias");
+      }
+    }
+
+    result->set_value(ok);
+  }
+
+
+
+  auto data = driver_->receive_data();
+  if (!data) {
+    if (++consecutive_timeouts_ > 20) {
+      RCLCPP_ERROR(rclcpp::get_logger("NetFtHardwareInterface"),
+                   "No RDT data for %d cycles; the sensor stopped streaming",
+                   consecutive_timeouts_);
+      return hardware_interface::return_type::ERROR;
+    }
+    return hardware_interface::return_type::OK;
+  }
+  consecutive_timeouts_ = 0;
+  if (log_after_bias_ > 0 && --log_after_bias_ == 0) {
+    const auto& m = ft_sensor_measurements_;
+    RCLCPP_INFO(logger_, "Post-bias wrench: F=[%.3f %.3f %.3f] N, T=[%.4f %.4f %.4f] Nm",
+                m[0], m[1], m[2], m[3], m[4], m[5]);
+  }
+
+  ft_sensor_measurements_ = data->ft_values;
+  lost_packets_ = static_cast<double>(data->lost_packets);
+  packet_count_ = static_cast<double>(data->packet_count);
+  out_of_order_count_ = static_cast<double>(data->out_of_order_count);
+  status_ = static_cast<double>(data->status);
   return hardware_interface::return_type::OK;
 }
+
+void NetFtHardwareInterface::request_bias(BiasCommand cmd, std_srvs::srv::Trigger::Response::SharedPtr res)
+{
+  auto promise = std::make_shared<std::promise<bool>>();
+  auto future = promise->get_future();
+  {
+    std::lock_guard<std::mutex> lock(bias_mtx_);
+    if (pending_bias_ != BiasCommand::kNone) {
+      res->success = false;
+      res->message = "Another bias request is already pending";
+      return;
+    }
+    pending_bias_ = cmd;
+    bias_result_ = promise;
+  }
+
+  if (future.wait_for(std::chrono::seconds(5)) != std::future_status::ready) {
+    std::lock_guard<std::mutex> lock(bias_mtx_);
+    pending_bias_ = BiasCommand::kNone;
+    bias_result_.reset();
+    res->success = false;
+    res->message = "Timed out; the read loop is not running. Is the hardware active?";
+    return;
+  }
+
+  res->success = future.get();
+  res->message = res->success ? "Bias command completed" : "Bias command failed";
+}
+
 }  // namespace net_ft_driver
 
 #include "pluginlib/class_list_macros.hpp"

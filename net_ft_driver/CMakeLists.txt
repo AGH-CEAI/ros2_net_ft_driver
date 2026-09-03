@@ -27,7 +27,6 @@ foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
     pkg_check_modules(${Dependency} REQUIRED curlpp)
   else()
     find_package(${Dependency} REQUIRED)
-    find_package(CURL REQUIRED)
   endif()
 endforeach()
 
@@ -50,13 +49,6 @@ ament_target_dependencies(
   ${THIS_PACKAGE_INCLUDE_DEPENDS}
 )
 pluginlib_export_plugin_description_file(hardware_interface hardware_interface_plugin.xml)
-add_executable(bias_service_node
-  src/bias_service_node.cpp
-  src/bias_service.cpp
-)
-target_include_directories(bias_service_node PRIVATE include)
-ament_target_dependencies(bias_service_node ${THIS_PACKAGE_INCLUDE_DEPENDS})
-target_link_libraries(bias_service_node CURL::libcurl)
 
 install(
   TARGETS ${PROJECT_NAME}
