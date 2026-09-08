@@ -119,23 +119,11 @@ def launch_setup(context, *args, **kwargs):
         ],
     )
 
-    bias_service_node = launch_ros.actions.Node(
-        package="net_ft_driver",
-        executable="bias_service_node",
-        parameters=[
-            {
-                "ip_address": ip_address,
-                "sensor_type": sensor_type,
-            }
-        ],
-    )
-
     nodes = [
         control_node,
         robot_state_publisher_node,
         force_torque_sensor_broadcaster_spawner,
         net_ft_diagnostic_broadcaster,
-        bias_service_node,
     ]
 
     return nodes
