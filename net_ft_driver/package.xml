@@ -20,6 +20,7 @@
   <depend>pluginlib</depend>
   <depend>rclcpp</depend>
   <depend>rclcpp_lifecycle</depend>
+  <depend>std_srvs</depend>
   <depend>tinyxml2</depend>
 
   <exec_depend>controller_manager</exec_depend>

@@ -32,9 +32,13 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <future>
+#include <mutex>
+#include <thread>
 
 #include "rclcpp/macros.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "std_srvs/srv/trigger.hpp"
 
 #include "hardware_interface/sensor_interface.hpp"
 #include "hardware_interface/handle.hpp"
@@ -50,6 +54,7 @@ namespace net_ft_driver
 class NetFtHardwareInterface : public hardware_interface::SensorInterface
 {
 public:
+  ~NetFtHardwareInterface();
   RCLCPP_SHARED_PTR_DEFINITIONS(NetFtHardwareInterface)
 
   NET_FT_DRIVER_PUBLIC
@@ -71,6 +76,23 @@ public:
   hardware_interface::return_type read(const rclcpp::Time& time, const rclcpp::Duration& period) override;
 
 private:
+  enum class BiasCommand { kNone, kSet, kClear };
+  void request_bias(BiasCommand cmd, std_srvs::srv::Trigger::Response::SharedPtr res);
+
+  std::shared_ptr<rclcpp::Node> srv_node_;
+  std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> executor_;
+  std::thread executor_thread_;
+  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr set_bias_srv_;
+  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr clear_bias_srv_;
+  rclcpp::Logger logger_{ rclcpp::get_logger("NetFtHardwareInterface") };
+  int log_after_bias_{ 0 };
+
+  std::mutex bias_mtx_;
+  BiasCommand pending_bias_{ BiasCommand::kNone };
+  std::shared_ptr<std::promise<bool>> bias_result_;
+
+  int consecutive_timeouts_{ 0 };
+
   std::unique_ptr<NetFTInterface> driver_;
 
   std::string ip_address_;
