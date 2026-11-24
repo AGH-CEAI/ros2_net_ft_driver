@@ -74,7 +74,7 @@
     <joint name="${prefix}tool_side_joint" type="fixed">
       <parent link="${prefix}fts_link" />
       <child link="${prefix}tool_mount_link" />
-      <origin xyz="0 0 ${sensor_height}" rpy="0 0 0" />
+      <origin xyz="0 0 ${sensor_height}" rpy="0 0 ${0.5 * pi}" />
     </joint>
     <link name="${prefix}tool_mount_link" />
 
